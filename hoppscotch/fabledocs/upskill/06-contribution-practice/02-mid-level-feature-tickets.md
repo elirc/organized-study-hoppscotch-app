@@ -16,8 +16,9 @@ Interview story potential: "I designed the payload-vs-refetch tradeoff for live 
 
 ## M3: Cap and validate mock-server `delayInMs`
 Layers: GraphQL input validation → service → docs.
-Enforce a max (e.g., 60s) at creation/update, plus a runtime clamp at [mock-server.controller.ts#L135-L140](../../../packages/hoppscotch-backend/src/mock-server/mock-server.controller.ts#L135-L140) for pre-existing rows. Migration question: what about existing rows over the cap? (Clamp at runtime; don't rewrite data silently — argue it.)
+**Start by reading what exists:** the create and update inputs already carry `@IsNumber() @Max(60000)` ([mock-server.model.ts#L159-L161](../../../packages/hoppscotch-backend/src/mock-server/mock-server.model.ts#L159-L161), [#L191-L193](../../../packages/hoppscotch-backend/src/mock-server/mock-server.model.ts#L191-L193)), so the write-side cap is done. The real ticket is to add `@Min(0)`, decide whether 60 s is the right ceiling for a shared instance, and add a runtime clamp at [mock-server.controller.ts#L135-L140](../../../packages/hoppscotch-backend/src/mock-server/mock-server.controller.ts#L135-L140) for pre-existing rows. Migration question: what about existing rows over the cap? (Clamp at runtime; don't rewrite data silently — argue it.)
 Risk: users with legitimate long delays (timeout testing). Rollback: raise the constant.
+**Check:** the `mock-server.service.spec.ts` update case (around L770, `delayInMs: 100`) shows how inputs are fed in a test. Write the one that sends `delayInMs: -1` and `60001`, and before running it, predict which layer rejects each value.
 Interview story potential: "I closed a resource-holding DoS vector while preserving the feature's purpose."
 
 ## M4: Request-level "resolved effective request" preview

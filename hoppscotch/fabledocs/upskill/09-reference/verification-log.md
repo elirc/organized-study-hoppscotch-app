@@ -57,3 +57,13 @@ Running log of what was inspected while authoring this curriculum. Anchors in th
 3. `refreshAuthTokens(hashedRefreshToken, ...)` parameter actually receives the raw cookie token (it is the *stored* token that is hashed) — misleading name (`auth.service.ts#L335-L352`).
 4. `PubSubService` is in-memory only — subscriptions cannot fan out across multiple backend instances (`pubsub.service.ts#L14-L18`, comment at L5-L8 says Redis "for production" but none is wired).
 5. `UserHistory` has no visible retention/pruning (schema only; service not fully read).
+
+## Re-check on 2026-10-07 (study copy `elirc/organized-study-hoppscotch-app`)
+
+Static re-check of `fabledocs/upskill/` and `docs-codex-learning/`; nothing installed or run.
+
+- **Anchors:** every `#L` link and `path:N` citation lands inside its file. `docs-codex-learning/` abbreviates package paths (`selfhost-web/src/main.ts` = `packages/hoppscotch-selfhost-web/src/main.ts`); with that prefix, all of them resolve. A content spot-check matched the code: the argon2 hash at `auth.service.ts` L114, `refreshAuthTokens` at L335, controller-wide `ThrottlerBehindProxyGuard` at `auth.controller.ts` L34 with `@SkipThrottle()` at L114, count-then-write in `updateTeamAccessRole` (L157–L192) and `leaveTeam` (L209–L231), `isEncrypted` at schema L221, and the `delayInMs` sleep at `mock-server.controller.ts` L136–L138.
+- **Links fixed:** four relative links in `07-career-and-collaboration/` pointed at `0X-*.md` siblings that live in `06-contribution-practice/`.
+- **Two "unread" items closed by reading:**
+  - R6/M3: `delayInMs` is already capped by `@Max(60000)` on both mock-server inputs (`mock-server.model.ts` L159–L161, L191–L193), with no `@Min`.
+  - R8: `UserHistory` (schema L152–L161) has no `@@index`, and no migration adds one. That partly answers "Prisma migrations folder contents" above: the migrations were grepped for `UserHistory` indexes only.
